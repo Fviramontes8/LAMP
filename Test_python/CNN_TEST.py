@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 import os
 import scipy.io as sio
 import numpy as np
@@ -13,9 +10,6 @@ from keras.layers.convolutional import Conv1D, MaxPooling1D
 from keras.layers import Dense, Dropout, Activation, Flatten
 import warnings
 warnings.filterwarnings('ignore')
-
-# In[2]:
-
 
 def convert_to_3d(data,n_time=100):
     a1 = np.int(np.floor(data.shape[0]/n_time)*n_time)
@@ -31,7 +25,14 @@ def model_struct():
     n_features = 6
     n_outputs = 4
     model = Sequential()
-    model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(n_timesteps,n_features)))
+    model.add(
+        Conv1D(
+            filters=64, 
+            kernel_size=3, 
+            activation='relu', 
+            input_shape=(n_timesteps,n_features)
+        )
+    )
     model.add(Conv1D(filters=64, kernel_size=3, activation='relu'))
     model.add(Dropout(0.5))
     model.add(MaxPooling1D(pool_size=2))
@@ -113,7 +114,6 @@ def CNN_TEST1(data, relay):
         return Y_pred[-1]
 
 '''
-
 def main():
     dir_sav = './Models'
     relay = 'RTL3'
@@ -125,10 +125,11 @@ def main():
     # Data loading
 
     data = loading_Sample_file(relay, config)
-    ############## ONLY NEEDED IF LOADING ENTIRE MATFILE #########################
+    ############## ONLY NEEDED IF LOADING ENTIRE MATFILE ###################
     #directory = '/content/drive/MyDrive/CONF _EXPERIMETN'
-    #data = loading_matfile_test(directory, relay, config) # if loading happens through mat file
-    ##############################################################################
+    # if loading happens through mat file
+    #data = loading_matfile_test(directory, relay, config) 
+    ########################################################################
     test,y = data_preparation(data,  max_min_tr[0,:],  max_min_tr[1,:])
 
     [t1, ind1] = split_sequence_window_past_only(test)
@@ -141,10 +142,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-# In[ ]:
 '''
-
-
-
