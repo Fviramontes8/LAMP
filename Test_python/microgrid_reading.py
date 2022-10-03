@@ -14,6 +14,8 @@ import CNN_TEST as cn
 import numpy as np
 import sys
 
+import scipy.io as scio
+
 def computing_fin_prob(l1, l11, relay):
         pfc_C1 = svC1.svm_test_main(l1, relay)
         pfc_C2 = svC2.svm_test_main(l1, relay)
@@ -39,7 +41,6 @@ def computing_fin_prob(l1, l11, relay):
 #[V1, V2, V0, I1, I2, I0, fault status_boolean (0 or 1), fault type (2 fro AB as Adams doc), fault_resistance (0.5), RTL1, RTL2, RTL3, RTL4]
 
 def begin_modbus():
-        # modbus
         client = ModbusTcpClient('192.168.1.19', port=502)
         print(client.connect())
         print(client.is_socket_open())
@@ -48,14 +49,15 @@ def begin_modbus():
         while(client.connect()):  
                 time.sleep(1)
                 try:
-                        result = client.read_holding_registers(0,26,unit =1) 
+                        result = client.read_holding_registers(0, 26, unit=1) 
                         decoder = BinaryPayloadDecoder.fromRegisters(
-                        result.registers, 
-                        byteorder=Endian.Little, 
-                        wordorder=Endian.Little
+                                result.registers, 
+                                byteorder=Endian.Little, 
+                                wordorder=Endian.Little
                         )
 	    
-                        array = [
+                        # 
+                        decoded_features = [
                                 decoder.decode_32bit_float(),
                                 decoder.decode_32bit_float(),
                                 decoder.decode_32bit_float(),
@@ -71,21 +73,22 @@ def begin_modbus():
                                 decoder.decode_32bit_float()
                         ]
                         
-                        #voltage and current values saved here
+                        # L1 contains [ V1, V2, V0, I1, I2, I0 ]
+                        # Voltage and current values 
                         l1 = [
-                                array[0], 
-                                array[1], 
-                                array[2],
-                                array[3], 
-                                array[4], 
-                                array[5]
+                                decoded_features[0], 
+                                decoded_features[1], 
+                                decoded_features[2],
+                                decoded_features[3], 
+                                decoded_features[4], 
+                                decoded_features[5]
                         ]     
                         relay = 'RTL3'
                         l11.append(l1)
                         print("\n")
                         i = i+1
                         print('iteration completed = ', i)
-                        print(array)
+                        print(decoded_features)
                         [pCNN, PF, PFC] = computing_fin_prob(l1, l11, relay)
                         print('Configuration classifier (1DCNN): ',pCNN)
                         print('Fault Detector (GP+OCSVM): ',PF)
@@ -96,7 +99,9 @@ def begin_modbus():
                         client.close()
 
 def main():
-        pass
+        mat_file = scio.loadmat("../Data/sample_C3RTL3.mat")
+        print(f"Relay keys:  {mat_file.keys()}")
+        print(f"Data: {mat_file['sample_C3RTL3'].shape}")
 
 if __name__ == "__main__":
         main()
