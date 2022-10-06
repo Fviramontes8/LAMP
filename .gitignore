@@ -1,2 +1,4 @@
-# Python cache
+# Python caches
 Test_python/__pycache__/
+local_modules/__pycache__/
+__pycache__/
