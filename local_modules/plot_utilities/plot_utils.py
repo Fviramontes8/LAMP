@@ -50,3 +50,71 @@ def save_subplots(data: np.array, labels: list, png_filename: str,
         ax[ax_row][ax_col].set_title(labels[i])
     plt.savefig(png_filename)
 
+
+def save_cnn_history(cnn_history: np.array, 
+        title="Past 100 configurations given a data sample") -> None:
+    data_pts = 100
+    if cnn_history.shape[0] < 100:
+        data_pts = cnn_history.shape[0]
+        title = f"Past {data_pts} configurations given a data sample"
+
+    x_data = [
+        i+1 for i in range(data_pts)
+    ]
+
+    plt.plot(x_data, cnn_history[-data_pts:, 0], "b-", 
+        label="Configuration 1 probability")
+    plt.plot(x_data, cnn_history[-data_pts:, 1], "r-", 
+        label="Configuration 2 probability")
+    plt.plot(x_data, cnn_history[-data_pts:, 2], "g-", 
+        label="Configuration 3 probability")
+    plt.plot(x_data, cnn_history[-data_pts:, 3], "o-", 
+        label="Configuration 4 probability")
+    plt.title(title)
+    plt.legend()
+    plt.savefig("CNN_History.png")
+    plt.clf()
+
+
+def save_pf_history(pf_history: list, 
+        title="Past 100 fault probabilities given a data sample"):
+    data_pts = 100
+    if len(pf_history) < 100:
+        data_pts = len(pf_history)
+        title = f"Past {data_pts} fault probabilities given a data sample"
+
+    x_data = [
+        i+1 for i in range(data_pts)
+    ]
+
+    plt.plot(x_data, pf_history[-data_pts:], "c-", 
+        label="Fault probability")
+    plt.title(title)
+    plt.legend()
+    plt.savefig("PF_History.png")
+    plt.clf()
+
+
+def save_pfc_history(pfc_history: np.array, 
+        title="Past 100 configurations given a data sample") -> None:
+    data_pts = 100
+    if pfc_history.shape[0] < 100:
+        data_pts = pfc_history.shape[0]
+        title = f"Past {data_pts} configurations given a data sample"
+
+    x_data = [
+        i+1 for i in range(data_pts)
+    ]
+
+    plt.plot(x_data, pfc_history[-data_pts:, 0], "k-", 
+        label="Fault configuration 1 probability")
+    plt.plot(x_data, pfc_history[-data_pts:, 1], "m-", 
+        label="Fault configuration 2 probability")
+    plt.plot(x_data, pfc_history[-data_pts:, 2], "y-", 
+        label="Fault configuration 3 probability")
+    plt.title(title)
+    plt.legend()
+    plt.savefig("PFC_History.png")
+    plt.clf()
+
+
