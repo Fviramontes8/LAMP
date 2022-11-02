@@ -5,6 +5,8 @@ import time
 from . import svm_fault_classifier as svm_fc
 from . import gp_ocsvm_fault_detector as gp_svm_fd
 from . import cnn_fault_detector as cnn_fd
+from ..plot_utilities import plot_utils as pu
+from ..data_io import mat_io
 import numpy as np
 import sys
 
@@ -50,6 +52,53 @@ def compute_fault_probabilities(l1: list, l11: list, relay: str):
 
     return pCNN, PF, PFC
 
+def sample_c1rtl3_experiment():
+    relay_data_dict = mat_io.open_mat_file("Data/sample_C1RTL3.mat")
+    data_key = "sample_C1RTL3"
+    relay_name = "RTL3"
+    feature_labels = [
+        "Timestamp",
+        "V1",
+        "V2",
+        "V0",
+        "I1",
+        "I2",
+        "I0",
+        "Breaker Status",
+        "Fault Impedance",
+        "Fault Location (Fault bus 20)",
+        "Fault Type (1 - 4)",
+        "Configuration",
+    ]
+
+    relay_data_array = np.array(relay_data_dict[data_key]).T
+    relay_data_length = len(relay_data_array[0])
+    # pu.create_subplots(relay_data_array, feature_labels, 3, 4)
+
+    p_cnn_history = np.zeros((1, 4))
+    pf_history = []
+    pfc_history = np.zeros((1, 3))
+
+    # CNN component requires 101 values before it can begin inferencing
+    #   on new data
+    total_testing_data = [ relay_data_array[1:7, i] for i in range(101) ]
+    for i in range(101, relay_data_length):
+        testing_data_slice = list(relay_data_array[1:7, i])
+        total_testing_data.append(testing_data_slice)
+        p_cnn, pf, pfc = compute_fault_probabilities(
+            testing_data_slice,
+            total_testing_data,
+            relay_name
+        )
+        #print(f"Iteration {i-101}, p_cnn: {p_cnn}, pf: {pf}, pfc: {pfc}")
+
+        p_cnn_history = np.vstack((p_cnn_history, p_cnn))
+        pf_history.append(pf)
+        pfc_history = np.vstack((pfc_history, pfc))
+        pu.save_cnn_history(p_cnn_history)
+        pu.save_pf_history(pf_history)
+        pu.save_pfc_history(pfc_history)
+        time.sleep(0.5)
 
 # [V1, V2, V0, I1, I2, I0, fault status_boolean (0 or 1), 
 # fault type (2 fro AB as Adams doc), fault_resistance (0.5), 
