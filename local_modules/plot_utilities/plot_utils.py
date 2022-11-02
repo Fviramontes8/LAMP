@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 """
 @brief Supporting function to help visualize the relay data
 
@@ -22,6 +23,7 @@ def create_subplots(data: np.array, labels: list,
         ax[ax_row][ax_col].plot(x_data, data[i])
         ax[ax_row][ax_col].set_title(labels[i])
     plt.show()
+
 
 """
 @brief Same functionality as create_subplots but rather than opening a 
@@ -51,6 +53,14 @@ def save_subplots(data: np.array, labels: list, png_filename: str,
     plt.savefig(png_filename)
 
 
+"""
+@brief Takes a time series of configuration predictions and saves a plot to be
+    seen in a separate image viewing program
+
+@param cnn_history -- A time series containing a history of configuration
+    predictions
+@param title -- Title to be used in the graph
+"""
 def save_cnn_history(cnn_history: np.array, 
         title="Past 100 configurations given a data sample") -> None:
     data_pts = 100
@@ -76,8 +86,16 @@ def save_cnn_history(cnn_history: np.array,
     plt.clf()
 
 
+"""
+@brief Takes a time series of probability fault predictions and saves a plot 
+    to be seen in a separate image viewing program
+
+@param pf_history -- A time series containing a history of probability fault
+    predictions
+@param title -- Title to be used in the graph
+"""
 def save_pf_history(pf_history: list, 
-        title="Past 100 fault probabilities given a data sample"):
+        title="Past 100 fault probabilities given a data sample") -> None:
     data_pts = 100
     if len(pf_history) < 100:
         data_pts = len(pf_history)
@@ -95,6 +113,14 @@ def save_pf_history(pf_history: list,
     plt.clf()
 
 
+"""
+@brief Takes a time series of probability fault configuration predictions and 
+    saves a plot to be seen in a separate image viewing program
+
+@param pf_history -- A time series containing a history of probability fault
+    configuration predictions
+@param title -- Title to be used in the graph
+"""
 def save_pfc_history(pfc_history: np.array, 
         title="Past 100 configurations given a data sample") -> None:
     data_pts = 100
