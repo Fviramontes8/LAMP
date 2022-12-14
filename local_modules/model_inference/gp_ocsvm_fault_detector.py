@@ -118,8 +118,8 @@ def Gp_test(test_x, model, likelihood):
 
 def OCSVM_test(clf, test):
     pred = clf.predict(test)
-    scores_oc = clf.decision_function(test)
-    p = 1/(1+np.exp(scores_oc))
+    scores_oc = clf.decision_function(test) # 0 when normal, non-zero when positive
+    p = 1/(1+np.exp(scores_oc)) # Normalized probability values, ranges 0 - 1. 0 when normal, 1 or 1/2 when positive
     return pred, scores_oc, p
 
 def GP_plus_OC_TEST(test_x, test_y, model1, likelihood1, model2, likelihood2, 
@@ -194,6 +194,6 @@ def GP_test_main(test, config, relay):
     # testing on the data
     [pred, scores_oc, p, test] = GP_plus_OC_TEST(
         test_x, test_y, GP1, lh1, GP2, lh2, GP3, lh3, OCSVM)
-
-    return pred # +1 normal, -1 abnormal
+    # +1 normal, -1 abnormal
+    return p
 

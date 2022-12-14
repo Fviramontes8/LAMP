@@ -16,5 +16,3 @@ import scipy.io as scio
 """
 def open_mat_file(path: str) -> dict:
     return scio.loadmat(path);
-
-
