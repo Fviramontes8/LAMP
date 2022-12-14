@@ -41,13 +41,12 @@ def compute_fault_probabilities(l1: list, l11: list, relay: str):
     pCNN = cnn_fd.CNN_TEST1(np.array(l11), "C1", relay)
 
     # Computing the marginal probabilities for fault detector and fault classifier
-    PFC1 = pfc_C1[0]*pCNN[0] + pfc_C2[0]*pCNN[1]\
-        + pfc_C3[0]*pCNN[2] + pfc_C4[0]*pCNN[3]
-    PFC2 = pfc_C1[1]*pCNN[0] + pfc_C2[1]*pCNN[1]\
-        + pfc_C3[1]*pCNN[2] + pfc_C4[1]*pCNN[3]
-    PFC3 = pfc_C1[2]*pCNN[0] + pfc_C2[2]*pCNN[1]\
-        + pfc_C3[2]*pCNN[2] + pfc_C4[2]*pCNN[3]
+    PFC1 = pfc_C1[0]*pCNN[0] + pfc_C2[0]*pCNN[1] + pfc_C3[0]*pCNN[2] + pfc_C4[0]*pCNN[3]
+    PFC2 = pfc_C1[1]*pCNN[0] + pfc_C2[1]*pCNN[1] + pfc_C3[1]*pCNN[2] + pfc_C4[1]*pCNN[3]
+    PFC3 = pfc_C1[2]*pCNN[0] + pfc_C2[2]*pCNN[1] + pfc_C3[2]*pCNN[2] + pfc_C4[2]*pCNN[3]
+
     PFC = [PFC1, PFC2, PFC3]
+
     PF = pGP_C1*pCNN[0] + pGP_C2*pCNN[1] + pGP_C3*pCNN[2] + pGP_C4*pCNN[3]
 
     return pCNN, PF, PFC
