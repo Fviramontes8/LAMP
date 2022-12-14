@@ -101,7 +101,7 @@ def save_pf_history(pf_history: list,
     ]
 
     plt.plot(x_data, pf_history[-data_pts:], "c-", label="Fault probability")
-    plt.ylim([-1.2, 1.2])
+    plt.ylim([-0.2, 1.2])
     plt.title(title)
     plt.legend()
     plt.savefig("PF_History.png")
