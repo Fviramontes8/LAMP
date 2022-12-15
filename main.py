@@ -5,7 +5,7 @@ from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
-import plot_utilities.plot_utils as pu
+import plots.plot_utils as pu
 from model_inference import fault_detector
 
 
