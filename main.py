@@ -5,8 +5,8 @@ from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 
-import local_modules.plot_utilities.plot_utils as pu
-from local_modules.model_inference import fault_detector
+import plot_utilities.plot_utils as pu
+from model_inference import fault_detector
 
 
 def main() -> None:
@@ -68,7 +68,11 @@ def main() -> None:
 
             relay = 'RTL3'
             total_data.append(l1)
-            p_cnn, pf, pfc = fault_detector.compute_fault_probabilities(l1, total_data, relay)
+            p_cnn, pf, pfc = fault_detector.compute_fault_probabilities(
+                l1,
+                total_data,
+                relay
+            )
 
             print(f"Iteration: {iteration} completed\n")
             # print(f"Iteration {iteration}, p_cnn: {p_cnn}, pf: {pf}, pfc: {pfc}")
