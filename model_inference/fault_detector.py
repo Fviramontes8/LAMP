@@ -5,8 +5,8 @@ import time
 from . import svm_fault_classifier as svm_fc
 from . import gp_ocsvm_fault_detector as gp_svm_fd
 from . import cnn_fault_detector as cnn_fd
-from ..plot_utilities import plot_utils as pu
-from ..data_io import mat_io
+from ..plots import plot_utils as pu
+from ..mat_io import mat_reader
 import numpy as np
 import sys
 
@@ -52,7 +52,7 @@ def compute_fault_probabilities(l1: list, l11: list, relay: str):
     return pCNN, PF, PFC
 
 def sample_c1rtl3_experiment():
-    relay_data_dict = mat_io.open_mat_file("Data/sample_C1RTL3.mat")
+    relay_data_dict = mat_reader.open_mat_file("Data/sample_C1RTL3.mat")
     data_key = "sample_C1RTL3"
     relay_name = "RTL3"
     feature_labels = [
@@ -102,10 +102,10 @@ def sample_c1rtl3_experiment():
 
 def sample_OPAL_experiment() -> None:
     # relay_data_dict = open_mat_file("Data/RTL1_C1_OPAL.mat")
-    rtl_c1 = mat_io.open_mat_file("Data/RTL1_C1_OPAL.mat")
-    rtl_c2 = mat_io.open_mat_file("Data/RTL1_C2_OPAL.mat")
-    rtl_c3 = mat_io.open_mat_file("Data/RTL1_C3_OPAL.mat")
-    rtl_c4 = mat_io.open_mat_file("Data/RTL1_C4_OPAL.mat")
+    rtl_c1 = mat_reader.open_mat_file("Data/RTL1_C1_OPAL.mat")
+    rtl_c2 = mat_reader.open_mat_file("Data/RTL1_C2_OPAL.mat")
+    rtl_c3 = mat_reader.open_mat_file("Data/RTL1_C3_OPAL.mat")
+    rtl_c4 = mat_reader.open_mat_file("Data/RTL1_C4_OPAL.mat")
 
     data_key = "all_quantities"
     relay_name = "RTL3"
