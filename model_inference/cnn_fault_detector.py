@@ -1,5 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
+"""
+@author Aswathy R Kurup
+
+Original code was written by Dr. Aswathy R Kurup and modified by 
+    Francisco Viramontes to be used as a module
+"""
 
 import os
 import scipy.io as sio
@@ -64,12 +68,12 @@ def split_sequence_window_past_only(data1, n_steps=100):
 
 def CNN_model_load(relay, config):
     model = model_struct()
-    dir_sample = '../Models'
-    os.chdir(dir_sample)
-    model.load_weights('CNN_weights_' + relay +'.h5')
+    local_dir = os.getcwd()
+    dir_sample = f"{local_dir}/Models"
+    model.load_weights(f"{dir_sample}/CNN_weights_{relay}.h5")
     #os.chdir(dir_sav)
-    fil = config + relay
-    max_min = np.load('maxmin_svm_' + fil + '.npy')
+    fil = f"{config}{relay}"
+    max_min = np.load(f"{dir_sample}/maxmin_svm_{fil}.npy")
     return model, max_min
 
 def loading_matfile_test(dir_path, relay, config):
@@ -94,10 +98,10 @@ def data_preparation(data2, max1, min1):
     #y_test = test[:,10]
     return x_test#, y_test
 
-def CNN_TEST1(data, relay):
-    dir_sav = './Models'
+# config = 'C1'
+def CNN_TEST1(data, config, relay):
+    dir_sav = f"{os.getcwd()}/Models"
     mdic = {"data": data}
-    config = 'C1'
     [model, max_min_tr] = CNN_model_load(relay, config)
     test = data_preparation(data,  max_min_tr[0,:],  max_min_tr[1,:])
     
@@ -113,33 +117,4 @@ def CNN_TEST1(data, relay):
         #print(Y_pred[-1])
         return Y_pred[-1]
 
-'''
-def main():
-    dir_sav = './Models'
-    relay = 'RTL3'
 
-    config = 'C1'
-    [model, max_min_tr] = CNN_model_load(relay, config)
-    model.summary()
-
-    # Data loading
-
-    data = loading_Sample_file(relay, config)
-    ############## ONLY NEEDED IF LOADING ENTIRE MATFILE ###################
-    #directory = '/content/drive/MyDrive/CONF _EXPERIMETN'
-    # if loading happens through mat file
-    #data = loading_matfile_test(directory, relay, config) 
-    ########################################################################
-    test,y = data_preparation(data,  max_min_tr[0,:],  max_min_tr[1,:])
-
-    [t1, ind1] = split_sequence_window_past_only(test)
-    if t1.shape[0]==1:
-        print('WARNING: insufficient data to process through the model')
-    else:
-        X_test = t1
-        Y_pred = model.predict(X_test, verbose=2)
-        print(Y_pred)
-
-if __name__ == '__main__':
-    main()
-'''

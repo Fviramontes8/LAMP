@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import sys
 import warnings
 import torch
@@ -23,7 +17,16 @@ class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
-        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel(variance_prior = gpytorch.priors.GammaPrior(2,2)))#gpytorch.kernels.ScaleKernel(gpytorch.kernels.LinearKernel(variance_prior = gpytorch.priors.GammaPrior(0.5,2)))
+        self.covar_module = gpytorch.kernels.ScaleKernel(
+            gpytorch.kernels.LinearKernel(
+                variance_prior = gpytorch.priors.GammaPrior(2,2)
+            )
+        )
+#        gpytorch.kernels.ScaleKernel(
+#            gpytorch.kernels.LinearKernel(
+#                variance_prior = gpytorch.priors.GammaPrior(0.5,2)
+#            )
+#        )
 
     def forward(self, x):
         mean_x = self.mean_module(x)
@@ -39,20 +42,20 @@ def loading_Sample_file(relay, config):
     '''
     loads small sample test data
     '''
-    mat_file = 'sample_' + config + relay
-    dir_sample = '../Data'
-    os.chdir(dir_sample)
-    data2 = sio.loadmat(mat_file)[mat_file]
+    mat_file = f"sample_{config}{relay}"
+    local_path = os.getcwd()
+    dir_sample = f"{local_path}/Data"
+    data2 = sio.loadmat(f"{dir_sample}{mat_file}")[mat_file]
     return data2
     
 def loading_matfile_test(relay, config):
     '''
     loads the entire test matfile
     '''
-    dir_sample = '../Data'
-    os.chdir(dir_sample)
-    mat_file = config+relay 
-    data2 = sio.loadmat(relay + '.mat')[mat_file]
+    local_path = os.getcwd()
+    dir_sample = f"{local_path}/Data"
+    mat_file = f"{config}{relay}"
+    data2 = sio.loadmat(f"{dir_sample}{relay}.mat")[mat_file]
     test = data2[round(data2.shape[0]/2):,:]
     j = 100000
     i = 0
@@ -60,35 +63,37 @@ def loading_matfile_test(relay, config):
     return test1
 
 def load_GPOCSVM_models(relay, config):
-    mat_file = config + relay 
+    mat_file = f"{config}{relay}"
     
     ## loading train data for initializing GP
-    os.chdir('../Data')    
-    [train_x, train_y] = np.load('train_GP_' + mat_file + '.npy')
+    local_path = f"{os.getcwd()}"
+    mat_file_path = f"{local_path}/Data/train_GP_{mat_file}.npy"
+    [train_x, train_y] = np.load(mat_file_path)
     train_x = torch.from_numpy(train_x)
     train_y = torch.from_numpy(train_y)
 
     ## loading all the GP models
-    os.chdir('../Models')
+    model_path = f"{local_path}/Models" 
     #GP1
     GP1, likelihood1 = GP_model(train_x, train_y[:,0])
-    GP1_state_dict = torch.load('GP1_' + mat_file + '.pth')
+    GP1_state_dict = torch.load(f"{model_path}/GP1_{mat_file}.pth")
     GP1.load_state_dict(GP1_state_dict)
     #GP2
     GP2, likelihood2 = GP_model(train_x, train_y[:,1])
-    GP2_state_dict = torch.load('GP2_' + mat_file + '.pth')
+    GP2_state_dict = torch.load(f"{model_path}/GP2_{mat_file}.pth")
     GP2.load_state_dict(GP2_state_dict)
     #GP3
     GP3, likelihood3 = GP_model(train_x, train_y[:,2])
-    GP3_state_dict = torch.load('GP3_' + mat_file + '.pth')
+    GP3_state_dict = torch.load(f"{model_path}/GP3_{mat_file}.pth")
     GP3.load_state_dict(GP3_state_dict)
 
     # Loading OCSVM model
-    file_name = 'OCSVM_'+ mat_file + '.sav'
+    file_name = f"{model_path}/OCSVM_{mat_file}.sav"
     OCSVM = pickle.load(open(file_name, 'rb'))
-    [max1, min1] = np.load('maxmin_GPOCSVM_' + mat_file + '.npy')
+    [max1, min1] = np.load(f"{model_path}/maxmin_GPOCSVM_{mat_file}.npy")
     
-    return GP1.double(), GP2.double(), GP3.double(), likelihood1, likelihood2, likelihood3, OCSVM, max1, min1
+    return GP1.double(), GP2.double(), GP3.double(), likelihood1, likelihood2,\
+        likelihood3, OCSVM, max1, min1
 
 def data_preparation(test, max1, min1):
     test = (test - min1) / (max1 - min1)
@@ -113,28 +118,34 @@ def Gp_test(test_x, model, likelihood):
 
 def OCSVM_test(clf, test):
     pred = clf.predict(test)
-    scores_oc = clf.decision_function(test)
-    p = 1/(1+np.exp(scores_oc))
+    scores_oc = clf.decision_function(test) # 0 when normal, non-zero when positive
+    p = 1/(1+np.exp(scores_oc)) # Normalized probability values, ranges 0 - 1. 0 when normal, 1 or 1/2 when positive
     return pred, scores_oc, p
 
-def GP_plus_OC_TEST(test_x, test_y, model1, likelihood1, model2, likelihood2, model3, likelihood3, clf):
-    
+def GP_plus_OC_TEST(test_x, test_y, model1, likelihood1, model2, likelihood2, 
+                    model3, likelihood3, clf):
     test_x = torch.from_numpy(test_x)
     test_y = torch.from_numpy(test_y)
     ##################### TEST #######################
     #test GP1
     [observed_pred1, f_var1] = Gp_test(test_x.double(), model1, likelihood1)
-    [error1, f_var1] = plot_test_GP(observed_pred1, f_var1, test_y[:,0].double())
+    [error1, f_var1] = plot_test_GP(
+        observed_pred1, f_var1, test_y[:,0].double()
+    )
 
     
     # test GP2
     [observed_pred2, f_var2] = Gp_test(test_x.double(), model2, likelihood2)
-    [error2, f_var2] = plot_test_GP(observed_pred2, f_var2, test_y[:,1].double())
+    [error2, f_var2] = plot_test_GP(
+        observed_pred2, f_var2, test_y[:,1].double()
+    )
 
     
     # test GP3
     [observed_pred3, f_var3] = Gp_test(test_x.double(), model3, likelihood3)
-    [error3, f_var3] = plot_test_GP(observed_pred3, f_var3, test_y[:,2].double())
+    [error3, f_var3] = plot_test_GP(
+        observed_pred3, f_var3, test_y[:,2].double()
+    )
 
     std_f1 = np.sqrt(f_var1)
     std_f2 = np.sqrt(f_var2)
@@ -159,35 +170,30 @@ def plot_test_GP(observed_pred, f_var, test_y):
     #lower, upper = observed_pred.confidence_region()
         mae = mean_absolute_error(test_y.numpy(), observed_pred.mean.numpy())
         mse = mean_squared_error(test_y.numpy(), observed_pred.mean.numpy())
-        mse_var = mean_squared_error(test_y.numpy(), observed_pred.mean.numpy())/np.var(test_y.numpy(), axis=0)
+        mse_var = mean_squared_error(
+            test_y.numpy(), 
+            observed_pred.mean.numpy()
+        )/np.var(test_y.numpy(), axis=0)
+
         lower = observed_pred.mean-2*f_var
         upper = observed_pred.mean+2*f_var
-        error1 = observed_pred.mean.numpy()[n_sample0:n_sample1] - test_y.numpy()[n_sample0:n_sample1]
+        error1 = observed_pred.mean.numpy()[ n_sample0:n_sample1]\
+            - test_y.numpy()[n_sample0:n_sample1]
+
     return error1, f_var
 
-def GP_test_main(test, relay):
-    config = 'C1'   # for training
-    [GP1, GP2, GP3, lh1, lh2, lh3, OCSVM, max1, min1] = load_GPOCSVM_models(relay, config)
+# config = 'C1'   # for training
+def GP_test_main(test, config, relay):
+    [GP1, GP2, GP3, lh1, lh2, lh3, OCSVM, max1, min1] = load_GPOCSVM_models(
+        relay, config
+    )
     
-    [test_x, test_y] = data_preparation(np.array(test).reshape(-1,1).T, max1, min1)
+    [test_x, test_y] = data_preparation(
+        np.array(test).reshape(-1,1).T, max1, min1)
+
     # testing on the data
-    [pred, scores_oc, p, test] = GP_plus_OC_TEST(test_x, test_y, GP1, lh1, GP2, lh2, GP3, lh3, OCSVM)
-    return pred # +1 normal, -1 abnormal
-'''
-def main():
-    config = 'C1'
-    relay = 'RTL3'
-    [GP1, GP2, GP3, lh1, lh2, lh3, OCSVM, max1, min1] = load_GPOCSVM_models(relay, config)
-    test = loading_Sample_file(relay, 'C1')
-    ############## ONLY NEEDED IF LOADING ENTIRE MATFILE #########################
-    #data = loading_matfile_test(relay, config) # if loading happens through mat file
-    ##############################################################################
-    [test_x, test_y, test_lab] = data_preparation(test, max1, min1)
-    # testing on the data
-    [pred, scores_oc, p, test] = GP_plus_OC_TEST(test_x, test_y, GP1, lh1, GP2, lh2, GP3, lh3, OCSVM)
-    print(pred,test_lab) # +1 normal, -1 abnormal
-    
-if __name__ == '__main__':
-    main()
-'''
+    [pred, scores_oc, p, test] = GP_plus_OC_TEST(
+        test_x, test_y, GP1, lh1, GP2, lh2, GP3, lh3, OCSVM)
+    # +1 normal, -1 abnormal
+    return p
 
